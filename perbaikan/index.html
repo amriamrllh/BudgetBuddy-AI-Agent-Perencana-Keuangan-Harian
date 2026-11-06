@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="BudgetBuddy — Perencana Keuangan Harian Pribadi bertenaga AI untuk pelajar dan fresh graduate Indonesia." />
+  <title>BudgetBuddy — Perencana Keuangan Pribadi</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ===== SIDEBAR ===== -->
+  <nav class="sidebar" id="sidebar" role="navigation" aria-label="Menu Navigasi Utama">
+    <div class="sidebar-header">
+      <span class="logo-icon" aria-hidden="true">💰</span>
+      <span class="logo-text">BudgetBuddy</span>
+    </div>
+
+    <ul class="nav-list" role="list">
+      <li><button class="nav-btn active" data-view="dashboard" aria-current="page">
+        <span class="nav-icon" aria-hidden="true">📊</span> Dashboard
+      </button></li>
+      <li><button class="nav-btn" data-view="transactions">
+        <span class="nav-icon" aria-hidden="true">💳</span> Transaksi
+      </button></li>
+      <li><button class="nav-btn" data-view="insights">
+        <span class="nav-icon" aria-hidden="true">🤖</span> AI Insights
+      </button></li>
+      <li><button class="nav-btn" data-view="savings">
+        <span class="nav-icon" aria-hidden="true">🎯</span> Target Tabungan
+      </button></li>
+      <li><button class="nav-btn" data-view="setup">
+        <span class="nav-icon" aria-hidden="true">⚙️</span> Pengaturan
+      </button></li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <div class="month-badge" id="currentMonthBadge" aria-live="polite">—</div>
+    </div>
+  </nav>
+
+  <!-- ===== MOBILE TOP BAR ===== -->
+  <header class="topbar" role="banner">
+    <button class="hamburger" id="hamburgerBtn" aria-label="Buka menu navigasi" aria-expanded="false" aria-controls="sidebar">
+      <span></span><span></span><span></span>
+    </button>
+    <span class="topbar-title">BudgetBuddy</span>
+    <div class="topbar-actions">
+      <span id="topbarMonth" aria-live="polite" class="topbar-month"></span>
+    </div>
+  </header>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="main-content" id="mainContent">
+
+    <!-- ─── VIEW: DASHBOARD ─── -->
+    <section class="view active" id="view-dashboard" aria-labelledby="dashHeading">
+      <div class="view-header">
+        <h1 id="dashHeading">Dashboard</h1>
+        <p class="view-subtitle" id="dashSubtitle">Ringkasan keuangan bulan ini</p>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="kpi-grid" role="list" aria-label="Kartu Ringkasan Keuangan">
+        <div class="kpi-card" role="listitem">
+          <div class="kpi-label">Total Pemasukan</div>
+          <div class="kpi-value positive" id="kpiIncome" aria-live="polite">Rp 0</div>
+          <div class="kpi-sub" id="kpiIncomeCount">0 transaksi</div>
+        </div>
+        <div class="kpi-card" role="listitem">
+          <div class="kpi-label">Total Pengeluaran</div>
+          <div class="kpi-value negative" id="kpiExpense" aria-live="polite">Rp 0</div>
+          <div class="kpi-sub" id="kpiExpenseCount">0 transaksi</div>
+        </div>
+        <div class="kpi-card" role="listitem">
+          <div class="kpi-label">Sisa Saldo</div>
+          <div class="kpi-value" id="kpiBalance" aria-live="polite">Rp 0</div>
+          <div class="kpi-sub" id="kpiBalancePct">—</div>
+        </div>
+        <div class="kpi-card" role="listitem">
+          <div class="kpi-label">Tingkat Tabungan</div>
+          <div class="kpi-value" id="kpiSavingsRate" aria-live="polite">0%</div>
+          <div class="kpi-sub">dari pemasukan bulan ini</div>
+        </div>
+      </div>
+
+      <!-- Budget Rule 50/30/20 -->
+      <div class="card" id="budgetRuleCard">
+        <div class="card-header">
+          <h2>Aturan Anggaran 50/30/20</h2>
+          <span class="badge" title="Kebutuhan / Keinginan / Tabungan">Needs / Wants / Savings</span>
+        </div>
+        <div class="budget-buckets" id="budgetBuckets" aria-label="Progress anggaran per kategori">
+          <!-- Injected by JS -->
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="charts-row">
+        <div class="card chart-card">
+          <div class="card-header">
+            <h2>Pengeluaran per Kategori</h2>
+          </div>
+          <div class="chart-container" id="categoryChartContainer" aria-label="Grafik pengeluaran per kategori">
+            <div class="empty-state" id="categoryChartEmpty">
+              <span aria-hidden="true">📂</span>
+              <p>Belum ada data pengeluaran</p>
+            </div>
+            <!-- SVG injected by JS -->
+          </div>
+          <div class="chart-legend" id="categoryLegend" role="list" aria-label="Legenda kategori"></div>
+        </div>
+
+        <div class="card chart-card">
+          <div class="card-header">
+            <h2>Tren Pengeluaran Harian</h2>
+          </div>
+          <div class="chart-container" id="trendChartContainer" aria-label="Grafik tren pengeluaran harian">
+            <div class="empty-state" id="trendChartEmpty">
+              <span aria-hidden="true">📈</span>
+              <p>Belum ada data pengeluaran</p>
+            </div>
+            <!-- SVG injected by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── VIEW: TRANSACTIONS ─── -->
+    <section class="view" id="view-transactions" aria-labelledby="txHeading" hidden>
+      <div class="view-header">
+        <h1 id="txHeading">Transaksi</h1>
+        <div class="view-actions">
+          <button class="btn btn-primary" id="openAddTxBtn" aria-haspopup="dialog">+ Tambah Transaksi</button>
+          <button class="btn btn-ghost" id="exportCsvBtn" title="Ekspor ke CSV">⬇ Ekspor CSV</button>
+        </div>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="filter-bar" role="search" aria-label="Filter dan pencarian transaksi">
+        <input type="search" id="txSearch" placeholder="Cari deskripsi…" aria-label="Cari transaksi" />
+        <select id="filterType" aria-label="Filter berdasarkan tipe">
+          <option value="">Semua Tipe</option>
+          <option value="income">Pemasukan</option>
+          <option value="expense">Pengeluaran</option>
+        </select>
+        <select id="filterCategory" aria-label="Filter berdasarkan kategori">
+          <option value="">Semua Kategori</option>
+        </select>
+      </div>
+
+      <!-- Transaction Table -->
+      <div class="card table-card">
+        <div class="table-wrapper" role="region" aria-label="Tabel transaksi" tabindex="0">
+          <table id="txTable" aria-describedby="txCaption">
+            <caption id="txCaption" class="sr-only">Daftar seluruh transaksi keuangan</caption>
+            <thead>
+              <tr>
+                <th scope="col">Tanggal</th>
+                <th scope="col">Deskripsi</th>
+                <th scope="col">Kategori</th>
+                <th scope="col">Tipe</th>
+                <th scope="col" class="text-right">Jumlah</th>
+                <th scope="col" class="text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="txTableBody">
+              <!-- Injected by JS -->
+            </tbody>
+          </table>
+          <div class="empty-state" id="txEmptyState" hidden>
+            <span aria-hidden="true">🗂️</span>
+            <p>Tidak ada transaksi yang cocok</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── VIEW: AI INSIGHTS ─── -->
+    <section class="view" id="view-insights" aria-labelledby="insightsHeading" hidden>
+      <div class="view-header">
+        <h1 id="insightsHeading">AI Insights</h1>
+        <p class="view-subtitle">Analisis otomatis dari data keuanganmu</p>
+      </div>
+      <div id="insightsList" class="insights-list" aria-live="polite" aria-label="Daftar insight keuangan">
+        <!-- Injected by JS -->
+      </div>
+      <div class="disclaimer card" role="note" aria-label="Disclaimer">
+        <span class="disclaimer-icon" aria-hidden="true">ℹ️</span>
+        <p><strong>Disclaimer:</strong> Insight di atas adalah panduan umum berbasis data kamu dan <em>bukan</em> saran keuangan profesional. Untuk keputusan keuangan besar, konsultasikan dengan perencana keuangan berlisensi.</p>
+      </div>
+    </section>
+
+    <!-- ─── VIEW: SAVINGS ─── -->
+    <section class="view" id="view-savings" aria-labelledby="savingsHeading" hidden>
+      <div class="view-header">
+        <h1 id="savingsHeading">Target Tabungan</h1>
+      </div>
+      <div id="savingsGoalPanel" class="card savings-goal-card">
+        <!-- Injected by JS -->
+      </div>
+    </section>
+
+    <!-- ─── VIEW: SETUP ─── -->
+    <section class="view" id="view-setup" aria-labelledby="setupHeading" hidden>
+      <div class="view-header">
+        <h1 id="setupHeading">Pengaturan Bulanan</h1>
+        <p class="view-subtitle">Atur pemasukan dan target tabunganmu setiap bulan</p>
+      </div>
+
+      <div class="card setup-card">
+        <form id="setupForm" novalidate aria-label="Form pengaturan bulanan">
+          <fieldset>
+            <legend>Pemasukan Bulanan</legend>
+            <div class="form-group">
+              <label for="setupIncome">Total Pemasukan Bulan Ini (Rp) <span class="required" aria-hidden="true">*</span></label>
+              <input type="number" id="setupIncome" name="income" min="0" step="1000" placeholder="Contoh: 5000000" required aria-required="true" />
+              <span class="field-hint">Masukkan total pemasukan kamu bulan ini</span>
+            </div>
+            <div class="form-group">
+              <label for="setupMonth">Bulan <span class="required" aria-hidden="true">*</span></label>
+              <input type="month" id="setupMonth" name="month" required aria-required="true" />
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Target Tabungan (Opsional)</legend>
+            <div class="form-group">
+              <label for="setupGoalName">Nama Target</label>
+              <input type="text" id="setupGoalName" name="goalName" placeholder="Contoh: Beli Laptop, Dana Darurat" maxlength="60" />
+            </div>
+            <div class="form-group">
+              <label for="setupGoalAmount">Jumlah Target (Rp)</label>
+              <input type="number" id="setupGoalAmount" name="goalAmount" min="0" step="1000" placeholder="Contoh: 3000000" />
+            </div>
+          </fieldset>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="setupSaveBtn">Simpan Pengaturan</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Danger Zone -->
+      <div class="card danger-zone">
+        <h2>Zona Bahaya</h2>
+        <p>Tindakan berikut tidak bisa dibatalkan. Harap berhati-hati.</p>
+        <div class="danger-actions">
+          <button class="btn btn-ghost" id="loadSampleBtn">🎲 Muat Data Contoh</button>
+          <button class="btn btn-danger" id="resetDataBtn">🗑 Reset Semua Data</button>
+        </div>
+      </div>
+    </section>
+
+  </main><!-- /main-content -->
+
+  <!-- ===== MODAL: Add / Edit Transaction ===== -->
+  <div class="modal-overlay" id="txModalOverlay" role="dialog" aria-modal="true" aria-labelledby="txModalTitle" hidden>
+    <div class="modal" role="document">
+      <div class="modal-header">
+        <h2 id="txModalTitle">Tambah Transaksi</h2>
+        <button class="modal-close" id="closeTxModal" aria-label="Tutup modal transaksi">✕</button>
+      </div>
+      <form id="txForm" class="modal-body" novalidate aria-label="Form transaksi">
+        <input type="hidden" id="txId" />
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="txDate">Tanggal <span class="required" aria-hidden="true">*</span></label>
+            <input type="date" id="txDate" name="date" required aria-required="true" />
+          </div>
+          <div class="form-group">
+            <label for="txType">Tipe <span class="required" aria-hidden="true">*</span></label>
+            <select id="txType" name="type" required aria-required="true">
+              <option value="">Pilih tipe…</option>
+              <option value="income">Pemasukan</option>
+              <option value="expense">Pengeluaran</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="txAmount">Jumlah (Rp) <span class="required" aria-hidden="true">*</span></label>
+          <input type="number" id="txAmount" name="amount" min="1" step="1" placeholder="Contoh: 50000" required aria-required="true" />
+        </div>
+
+        <div class="form-group">
+          <label for="txDesc">Deskripsi <span class="required" aria-hidden="true">*</span></label>
+          <input type="text" id="txDesc" name="description" placeholder="Contoh: Makan siang gofood" maxlength="100" required aria-required="true" />
+          <span class="field-hint" id="categoryHint">Kategori akan terdeteksi otomatis dari deskripsi</span>
+        </div>
+
+        <div class="form-group">
+          <label for="txCategory">Kategori</label>
+          <select id="txCategory" name="category" aria-describedby="categoryHint">
+            <option value="">Auto-detect dari deskripsi</option>
+            <option value="Food">🍜 Makanan</option>
+            <option value="Transport">🚗 Transportasi</option>
+            <option value="Housing">🏠 Tempat Tinggal</option>
+            <option value="Subscriptions">📱 Langganan</option>
+            <option value="Education">📚 Pendidikan</option>
+            <option value="Health">🏥 Kesehatan</option>
+            <option value="Entertainment">🎮 Hiburan</option>
+            <option value="Shopping">🛍 Belanja</option>
+            <option value="Misc">📦 Lainnya</option>
+          </select>
+        </div>
+
+        <div id="txFormError" class="form-error" role="alert" aria-live="assertive" hidden></div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-ghost" id="cancelTxBtn">Batal</button>
+          <button type="submit" class="btn btn-primary" id="saveTxBtn">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: Confirm Reset ===== -->
+  <div class="modal-overlay" id="confirmModalOverlay" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle" hidden>
+    <div class="modal modal-sm" role="document">
+      <div class="modal-header">
+        <h2 id="confirmModalTitle">Konfirmasi</h2>
+        <button class="modal-close" id="closeConfirmModal" aria-label="Tutup modal konfirmasi">✕</button>
+      </div>
+      <div class="modal-body">
+        <p id="confirmModalMsg">Apakah kamu yakin?</p>
+        <div class="form-actions">
+          <button type="button" class="btn btn-ghost" id="confirmCancelBtn">Batal</button>
+          <button type="button" class="btn btn-danger" id="confirmOkBtn">Ya, Lanjutkan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SETUP PROMPT (first-run overlay) ===== -->
+  <div class="modal-overlay" id="firstRunOverlay" role="dialog" aria-modal="true" aria-labelledby="firstRunTitle" hidden>
+    <div class="modal" role="document">
+      <div class="modal-header">
+        <h2 id="firstRunTitle">👋 Selamat Datang di BudgetBuddy!</h2>
+      </div>
+      <div class="modal-body">
+        <p>Untuk memulai, masukkan total pemasukanmu bulan ini dan (opsional) buat target tabungan.</p>
+        <form id="firstRunForm" novalidate aria-label="Form pengaturan awal">
+          <div class="form-group">
+            <label for="frMonth">Bulan <span class="required" aria-hidden="true">*</span></label>
+            <input type="month" id="frMonth" name="month" required aria-required="true" />
+          </div>
+          <div class="form-group">
+            <label for="frIncome">Total Pemasukan (Rp) <span class="required" aria-hidden="true">*</span></label>
+            <input type="number" id="frIncome" name="income" min="1" step="1000" placeholder="Contoh: 5000000" required aria-required="true" />
+          </div>
+          <div class="form-group">
+            <label for="frGoalName">Nama Target Tabungan (opsional)</label>
+            <input type="text" id="frGoalName" name="goalName" placeholder="Contoh: Beli Laptop" maxlength="60" />
+          </div>
+          <div class="form-group">
+            <label for="frGoalAmount">Jumlah Target (Rp, opsional)</label>
+            <input type="number" id="frGoalAmount" name="goalAmount" min="0" step="1000" placeholder="Contoh: 3000000" />
+          </div>
+          <div id="frFormError" class="form-error" role="alert" aria-live="assertive" hidden></div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-full">Mulai Sekarang 🚀</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlay backdrop for mobile sidebar -->
+  <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+  <!-- Toast notification -->
+  <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
